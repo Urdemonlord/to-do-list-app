@@ -1,16 +1,7 @@
 import React, { useState } from 'react';
-import { useRouter } from 'expo-router';
-import {
-  View,
-  Text,
-  StyleSheet,
-  SafeAreaView,
-  ScrollView,
-  TouchableOpacity,
-  FlatList,
-  Alert,
-} from 'react-native';
-import { Search, Plus, Filter } from 'lucide-react-native';
+import { StyleSheet, View, Text, TouchableOpacity, FlatList, ScrollView } from 'react-native';
+import { Link, router } from 'expo-router';
+import { Plus } from 'lucide-react-native';
 
 interface Task {
   id: string;
@@ -22,7 +13,6 @@ interface Task {
 }
 
 export default function TasksScreen() {
-  const router = useRouter();
   const [selectedFilter, setSelectedFilter] = useState<'Semua' | 'Sedang Berlangsung' | 'Selesai'>('Semua');
   const [selectedDate, setSelectedDate] = useState(25);
 
@@ -126,23 +116,14 @@ export default function TasksScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container}>      {/* Header */}
+    <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Tugas Hari Ini</Text>
-        <View style={styles.headerActions}>
-          <TouchableOpacity 
-            style={styles.actionButton}
-            activeOpacity={0.7}
-          >
-            <Search size={20} color="#666" />
+        <Text style={styles.title}>Daftar Tugas</Text>
+        <Link href="/add-task" asChild>
+          <TouchableOpacity style={styles.addButton}>
+            <Text style={styles.addButtonText}>+ Tambah Tugas</Text>
           </TouchableOpacity>
-          <TouchableOpacity 
-            style={styles.actionButton}
-            activeOpacity={0.7}
-          >
-            <Filter size={20} color="#666" />
-          </TouchableOpacity>
-        </View>
+        </Link>
       </View>
 
       {/* Calendar Strip */}
@@ -207,60 +188,58 @@ export default function TasksScreen() {
             <Text style={styles.emptySubtext}>Tambahkan tugas baru untuk memulai</Text>
           </View>
         )}
-      />
-
-      {/* Add Task Button */}
+      />      {/* Add Task Floating Button */}
       <TouchableOpacity 
-        style={styles.addButton}
+        style={styles.floatingAddButton}
         onPress={handleAddTask}
         activeOpacity={0.8}
       >
         <Plus size={24} color="white" />
       </TouchableOpacity>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
-  },  header: {
+    backgroundColor: '#fff',
+    padding: 20,
+  },
+  header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingTop: 20,
-    paddingBottom: 24,
+    marginBottom: 24,
   },
-  headerTitle: {
+  title: {
     fontSize: 24,
     fontWeight: '700',
     color: '#24252c',
     fontFamily: 'Inter-Bold',
   },
-  headerActions: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  actionButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'white',
-    justifyContent: 'center',
-    alignItems: 'center',
+  addButton: {
+    backgroundColor: '#5f33e1',
+    borderRadius: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 1,
+      height: 2,
     },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  addButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
+    fontFamily: 'Inter-SemiBold',
   },
   calendarContainer: {
-    paddingHorizontal: 24,
     marginBottom: 24,
   },
   calendarTitle: {
@@ -293,7 +272,6 @@ const styles = StyleSheet.create({
   },
   filterContainer: {
     flexDirection: 'row',
-    paddingHorizontal: 24,
     marginBottom: 24,
     gap: 12,
   },
@@ -316,7 +294,6 @@ const styles = StyleSheet.create({
     color: 'white',
   },
   tasksList: {
-    paddingHorizontal: 24,
     paddingBottom: 100,
   },
   taskCard: {
@@ -393,10 +370,27 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#666',
     fontFamily: 'Inter-Regular',
-  },  addButton: {
+  },
+  emptyState: {
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  emptyText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#666',
+    marginBottom: 8,
+    fontFamily: 'Inter-SemiBold',
+  },  emptySubtext: {
+    fontSize: 14,
+    color: '#999',
+    textAlign: 'center',
+    fontFamily: 'Inter-Regular',
+  },
+  floatingAddButton: {
     position: 'absolute',
-    bottom: 24,
-    right: 24,
+    right: 20,
+    bottom: 20,
     width: 56,
     height: 56,
     borderRadius: 28,
@@ -411,22 +405,5 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8,
-  },
-  emptyState: {
-    alignItems: 'center',
-    paddingVertical: 40,
-  },
-  emptyText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#666',
-    marginBottom: 8,
-    fontFamily: 'Inter-SemiBold',
-  },
-  emptySubtext: {
-    fontSize: 14,
-    color: '#999',
-    textAlign: 'center',
-    fontFamily: 'Inter-Regular',
   },
 });

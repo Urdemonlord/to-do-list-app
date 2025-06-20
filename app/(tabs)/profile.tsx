@@ -69,15 +69,25 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
         {/* Profile Header */}
-        <LinearGradient colors={['#5f33e1', '#7c4dff']} style={styles.profileHeader}>
+        <LinearGradient 
+          colors={['#5f33e1', '#7c4dff']} 
+          style={styles.profileHeader}
+        >
           <View style={styles.profileInfo}>
             <View style={styles.avatar}>
               <Text style={styles.avatarText}>LV</Text>
             </View>
             <Text style={styles.userName}>Livia Vaccaro</Text>
-            <Text style={styles.userEmail}>livia.vaccaro@email.com</Text>            <TouchableOpacity style={styles.editButton}>
+            <Text style={styles.userEmail}>livia.vaccaro@email.com</Text>
+            <TouchableOpacity 
+              style={styles.editButton}
+              onPress={() => handleMenuPress('Edit Profil')}
+            >
               <Text style={styles.editButtonText}>Edit Profil</Text>
             </TouchableOpacity>
           </View>
@@ -91,75 +101,55 @@ export default function ProfileScreen() {
               <Text style={styles.statLabel}>{stat.label}</Text>
             </View>
           ))}
-        </View>        {/* Current Task Progress */}
-        <View style={styles.currentTaskSection}>
-          <Text style={styles.sectionTitle}>Tugas Saat Ini</Text>
-          <View style={styles.taskCard}>
-            <View style={styles.taskHeader}>
-              <View style={styles.taskInfo}>
-                <Text style={styles.taskTitle}>Buat Wireframe</Text>
-                <Text style={styles.taskCategory}>Desain Aplikasi Mobile</Text>
-              </View>
-              <View style={styles.priorityBadge}>
-                <Text style={styles.priorityText}>Tinggi</Text>
-              </View>
-            </View>
-            <View style={styles.taskProgress}>
-              <View style={styles.progressBar}>
-                <View style={[styles.progressFill, { width: '75%' }]} />
-              </View>
-              <Text style={styles.progressText}>75%</Text>
-            </View>
-            <Text style={styles.dueText}>Batas: Hari ini</Text>
-          </View>
-        </View>        {/* Menu Items */}
+        </View>
+
+        {/* Menu Section */}
         <View style={styles.menuSection}>
-          <Text style={styles.sectionTitle}>Pengaturan</Text>
-          {menuItems.map((item, index) => (
-            <TouchableOpacity 
-              key={index} 
-              style={styles.menuItem}
-              onPress={() => handleMenuPress(item.title)}
-              activeOpacity={0.7}
-            >
-              <View style={styles.menuLeft}>
-                <View style={styles.menuIcon}>
-                  <item.icon size={20} color="#5f33e1" />
+          {menuItems.map((item, index) => {
+            const Icon = item.icon;
+            return (
+              <TouchableOpacity
+                key={index}
+                style={styles.menuItem}
+                onPress={() => handleMenuPress(item.title)}
+              >
+                <View style={styles.menuItemContent}>
+                  <View style={styles.menuItemIcon}>
+                    <Icon size={20} color="#5f33e1" />
+                  </View>
+                  <View style={styles.menuItemText}>
+                    <Text style={styles.menuItemTitle}>{item.title}</Text>
+                    <Text style={styles.menuItemSubtitle}>{item.subtitle}</Text>
+                  </View>
+                  {(item.title === 'Notifikasi' || item.title === 'Mode Gelap') ? (
+                    <Switch
+                      value={item.title === 'Notifikasi' ? notificationsEnabled : darkModeEnabled}
+                      onValueChange={item.title === 'Notifikasi' 
+                        ? setNotificationsEnabled 
+                        : setDarkModeEnabled}
+                      trackColor={{ false: '#e0e0e0', true: '#b39ddb' }}
+                      thumbColor={
+                        (item.title === 'Notifikasi' ? notificationsEnabled : darkModeEnabled) 
+                          ? '#5f33e1' 
+                          : '#f5f5f5'
+                      }
+                    />
+                  ) : (
+                    <ChevronRight size={20} color="#666" />
+                  )}
                 </View>
-                <View style={styles.menuText}>
-                  <Text style={styles.menuTitle}>{item.title}</Text>
-                  <Text style={styles.menuSubtitle}>{item.subtitle}</Text>
-                </View>
-              </View>
-              <View style={styles.menuRight}>
-                {item.title === 'Notifikasi' ? (
-                  <Switch
-                    value={notificationsEnabled}
-                    onValueChange={setNotificationsEnabled}
-                    trackColor={{ false: '#ccc', true: '#5f33e1' }}
-                  />
-                ) : item.title === 'Mode Gelap' ? (
-                  <Switch
-                    value={darkModeEnabled}
-                    onValueChange={setDarkModeEnabled}
-                    trackColor={{ false: '#ccc', true: '#5f33e1' }}
-                  />
-                ) : (
-                  <ChevronRight size={20} color="#ccc" />
-                )}
-              </View>
-            </TouchableOpacity>
-          ))}
+              </TouchableOpacity>
+            );
+          })}
         </View>
 
         {/* Logout Button */}
         <TouchableOpacity 
           style={styles.logoutButton}
           onPress={handleLogout}
-          activeOpacity={0.7}
         >
-          <LogOut size={20} color="#ff6b6b" />
-          <Text style={styles.logoutText}>Logout</Text>
+          <LogOut size={20} color="#ff4d4d" />
+          <Text style={styles.logoutText}>Keluar</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
@@ -169,13 +159,15 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#f3f0ff',
+  },
+  scrollContent: {
+    paddingBottom: 40,
   },
   profileHeader: {
-    paddingTop: 40,
-    paddingBottom: 40,
-    paddingHorizontal: 24,
-    alignItems: 'center',
+    padding: 24,
+    paddingTop: 48,
+    paddingBottom: 32,
   },
   profileInfo: {
     alignItems: 'center',
@@ -184,231 +176,125 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.2)',
     alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: 16,
   },
   avatarText: {
     fontSize: 32,
-    fontWeight: '700',
+    fontFamily: 'Inter-SemiBold',
     color: 'white',
-    fontFamily: 'Inter-Bold',
   },
   userName: {
     fontSize: 24,
-    fontWeight: '700',
+    fontFamily: 'Inter-Bold',
     color: 'white',
     marginBottom: 4,
-    fontFamily: 'Inter-Bold',
   },
   userEmail: {
     fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.8)',
-    marginBottom: 20,
     fontFamily: 'Inter-Regular',
+    color: 'rgba(255,255,255,0.8)',
+    marginBottom: 16,
   },
   editButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     paddingHorizontal: 24,
     paddingVertical: 8,
+    backgroundColor: 'rgba(255,255,255,0.2)',
     borderRadius: 20,
   },
   editButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
     color: 'white',
-    fontFamily: 'Inter-SemiBold',
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
   },
   statsSection: {
     flexDirection: 'row',
-    paddingHorizontal: 24,
-    marginTop: -20,
-    marginBottom: 24,
-    gap: 12,
+    padding: 20,
+    backgroundColor: 'white',
+    borderRadius: 16,
+    margin: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
   },
   statItem: {
     flex: 1,
-    backgroundColor: 'white',
-    padding: 20,
-    borderRadius: 16,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
   statValue: {
     fontSize: 24,
-    fontWeight: '700',
-    color: '#24252c',
-    marginBottom: 4,
     fontFamily: 'Inter-Bold',
+    color: '#1a1a1a',
+    marginBottom: 4,
   },
   statLabel: {
-    fontSize: 10,
-    color: '#666',
-    textAlign: 'center',
+    fontSize: 12,
     fontFamily: 'Inter-Regular',
-  },
-  currentTaskSection: {
-    paddingHorizontal: 24,
-    marginBottom: 32,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#24252c',
-    marginBottom: 16,
-    fontFamily: 'Inter-Bold',
-  },
-  taskCard: {
-    backgroundColor: 'white',
-    padding: 20,
-    borderRadius: 16,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  taskHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 16,
-  },
-  taskInfo: {
-    flex: 1,
-  },
-  taskTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#24252c',
-    marginBottom: 4,
-    fontFamily: 'Inter-SemiBold',
-  },
-  taskCategory: {
-    fontSize: 12,
     color: '#666',
-    fontFamily: 'Inter-Regular',
-  },
-  priorityBadge: {
-    backgroundColor: '#ff6b6b',
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  priorityText: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: 'white',
-    fontFamily: 'Inter-SemiBold',
-  },
-  taskProgress: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-    gap: 12,
-  },
-  progressBar: {
-    flex: 1,
-    height: 6,
-    backgroundColor: '#f0f0f0',
-    borderRadius: 3,
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: '#5f33e1',
-    borderRadius: 3,
-  },
-  progressText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#5f33e1',
-    fontFamily: 'Inter-SemiBold',
-  },
-  dueText: {
-    fontSize: 12,
-    color: '#ff6b6b',
-    fontWeight: '500',
-    fontFamily: 'Inter-Medium',
   },
   menuSection: {
-    paddingHorizontal: 24,
-    marginBottom: 32,
+    backgroundColor: 'white',
+    borderRadius: 16,
+    marginHorizontal: 16,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+    overflow: 'hidden',
   },
   menuItem: {
+    paddingHorizontal: 16,
+  },
+  menuItemContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: 'white',
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
   },
-  menuLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  menuIcon: {
+  menuItemIcon: {
     width: 40,
     height: 40,
     borderRadius: 20,
     backgroundColor: '#f3f0ff',
-    justifyContent: 'center',
     alignItems: 'center',
+    justifyContent: 'center',
     marginRight: 12,
   },
-  menuText: {
+  menuItemText: {
     flex: 1,
   },
-  menuTitle: {
+  menuItemTitle: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#24252c',
-    marginBottom: 2,
     fontFamily: 'Inter-SemiBold',
+    color: '#1a1a1a',
+    marginBottom: 2,
   },
-  menuSubtitle: {
+  menuItemSubtitle: {
     fontSize: 12,
-    color: '#666',
     fontFamily: 'Inter-Regular',
-  },
-  menuRight: {
-    marginLeft: 12,
+    color: '#666',
   },
   logoutButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'white',
-    marginHorizontal: 24,
+    backgroundColor: '#fff3f3',
+    marginHorizontal: 16,
+    marginTop: 16,
     padding: 16,
-    borderRadius: 12,
-    marginBottom: 24,
+    borderRadius: 16,
     gap: 8,
   },
   logoutText: {
+    color: '#ff4d4d',
     fontSize: 16,
-    fontWeight: '600',
-    color: '#ff6b6b',
     fontFamily: 'Inter-SemiBold',
   },
 });
