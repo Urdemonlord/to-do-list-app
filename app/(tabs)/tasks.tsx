@@ -80,7 +80,9 @@ export default function TasksScreen() {
       default:
         return '#ccc';
     }
-  };  const handleTaskPress = (taskId: string) => {
+  };
+  
+  const handleTaskPress = (taskId: string) => {
     // Navigate to task detail with task ID
     router.push(`/task-detail?id=${taskId}` as any);
   };
@@ -188,7 +190,8 @@ export default function TasksScreen() {
             <Text style={styles.emptySubtext}>Tambahkan tugas baru untuk memulai</Text>
           </View>
         )}
-      />      {/* Add Task Floating Button */}
+      />
+      {/* Add Task Floating Button */}
       <TouchableOpacity 
         style={styles.floatingAddButton}
         onPress={handleAddTask}

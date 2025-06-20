@@ -63,7 +63,9 @@ export default function ProjectsScreen() {
       dueDate: '31 Mar 2024',
       members: 2,
     },
-  ];  const handleProjectPress = (projectId: number) => {
+  ];
+  
+  const handleProjectPress = (projectId: number) => {
     Alert.alert(
       'Detail Proyek',
       `Membuka detail proyek ${projectId}`,

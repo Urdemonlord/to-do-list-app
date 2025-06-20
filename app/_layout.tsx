@@ -10,6 +10,7 @@ import {
 } from '@expo-google-fonts/inter';
 import * as SplashScreen from 'expo-splash-screen';
 import { useFrameworkReady } from '../hooks/useFrameworkReady';
+import { ThemeProvider } from '../contexts/ThemeContext';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -33,9 +34,9 @@ export default function RootLayout() {
   if (!fontsLoaded && !fontError) {
     return null;
   }
-
   return (
-    <>      <Stack screenOptions={{ headerShown: false }}>
+    <ThemeProvider>
+      <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="index" />
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="add-project" />
@@ -44,6 +45,6 @@ export default function RootLayout() {
         <Stack.Screen name="+not-found" />
       </Stack>
       <StatusBar style="auto" />
-    </>
+    </ThemeProvider>
   );
 }
