@@ -7,6 +7,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Switch,
+  Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { 
@@ -25,19 +26,46 @@ export default function ProfileScreen() {
   const [darkModeEnabled, setDarkModeEnabled] = React.useState(false);
 
   const menuItems = [
-    { icon: User, title: 'Edit Profile', subtitle: 'Update your personal information' },
-    { icon: Bell, title: 'Notifications', subtitle: 'Manage your notification preferences' },
-    { icon: Moon, title: 'Dark Mode', subtitle: 'Switch to dark theme' },
-    { icon: Globe, title: 'Language', subtitle: 'Change app language' },
-    { icon: HelpCircle, title: 'Help & Support', subtitle: 'Get help and contact support' },
-    { icon: Shield, title: 'Privacy Policy', subtitle: 'Read our privacy policy' },
+    { icon: User, title: 'Edit Profil', subtitle: 'Perbarui informasi pribadi Anda' },
+    { icon: Bell, title: 'Notifikasi', subtitle: 'Kelola preferensi notifikasi Anda' },
+    { icon: Moon, title: 'Mode Gelap', subtitle: 'Beralih ke tema gelap' },
+    { icon: Globe, title: 'Bahasa', subtitle: 'Ubah bahasa aplikasi' },
+    { icon: HelpCircle, title: 'Bantuan & Dukungan', subtitle: 'Dapatkan bantuan dan hubungi dukungan' },
+    { icon: Shield, title: 'Kebijakan Privasi', subtitle: 'Baca kebijakan privasi kami' },
   ];
 
   const stats = [
-    { label: 'Tasks Completed', value: '127' },
-    { label: 'Projects', value: '8' },
-    { label: 'Streak Days', value: '15' },
+    { label: 'Tugas Selesai', value: '127' },
+    { label: 'Proyek', value: '8' },
+    { label: 'Hari Berturut', value: '15' },
   ];
+
+  const handleMenuPress = (title: string) => {
+    switch (title) {
+      case 'Edit Profil':
+        Alert.alert('Edit Profil', 'Fitur akan segera hadir!');
+        break;
+      case 'Bantuan & Dukungan':
+        Alert.alert('Bantuan & Dukungan', 'Hubungi kami di support@todoapp.com');
+        break;
+      case 'Kebijakan Privasi':
+        Alert.alert('Kebijakan Privasi', 'Membuka halaman kebijakan privasi...');
+        break;
+      default:
+        break;
+    }
+  };
+
+  const handleLogout = () => {
+    Alert.alert(
+      'Logout',
+      'Apakah Anda yakin ingin keluar?',
+      [
+        { text: 'Batal', style: 'cancel' },
+        { text: 'Keluar', style: 'destructive', onPress: () => console.log('Logout') },
+      ]
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -49,9 +77,8 @@ export default function ProfileScreen() {
               <Text style={styles.avatarText}>LV</Text>
             </View>
             <Text style={styles.userName}>Livia Vaccaro</Text>
-            <Text style={styles.userEmail}>livia.vaccaro@email.com</Text>
-            <TouchableOpacity style={styles.editButton}>
-              <Text style={styles.editButtonText}>Edit Profile</Text>
+            <Text style={styles.userEmail}>livia.vaccaro@email.com</Text>            <TouchableOpacity style={styles.editButton}>
+              <Text style={styles.editButtonText}>Edit Profil</Text>
             </TouchableOpacity>
           </View>
         </LinearGradient>
@@ -64,19 +91,17 @@ export default function ProfileScreen() {
               <Text style={styles.statLabel}>{stat.label}</Text>
             </View>
           ))}
-        </View>
-
-        {/* Current Task Progress */}
+        </View>        {/* Current Task Progress */}
         <View style={styles.currentTaskSection}>
-          <Text style={styles.sectionTitle}>Current Task</Text>
+          <Text style={styles.sectionTitle}>Tugas Saat Ini</Text>
           <View style={styles.taskCard}>
             <View style={styles.taskHeader}>
               <View style={styles.taskInfo}>
-                <Text style={styles.taskTitle}>Sketch Wireframe</Text>
-                <Text style={styles.taskCategory}>Mobile App Design</Text>
+                <Text style={styles.taskTitle}>Buat Wireframe</Text>
+                <Text style={styles.taskCategory}>Desain Aplikasi Mobile</Text>
               </View>
               <View style={styles.priorityBadge}>
-                <Text style={styles.priorityText}>High</Text>
+                <Text style={styles.priorityText}>Tinggi</Text>
               </View>
             </View>
             <View style={styles.taskProgress}>
@@ -85,15 +110,18 @@ export default function ProfileScreen() {
               </View>
               <Text style={styles.progressText}>75%</Text>
             </View>
-            <Text style={styles.dueText}>Due: Today</Text>
+            <Text style={styles.dueText}>Batas: Hari ini</Text>
           </View>
-        </View>
-
-        {/* Menu Items */}
+        </View>        {/* Menu Items */}
         <View style={styles.menuSection}>
-          <Text style={styles.sectionTitle}>Settings</Text>
+          <Text style={styles.sectionTitle}>Pengaturan</Text>
           {menuItems.map((item, index) => (
-            <TouchableOpacity key={index} style={styles.menuItem}>
+            <TouchableOpacity 
+              key={index} 
+              style={styles.menuItem}
+              onPress={() => handleMenuPress(item.title)}
+              activeOpacity={0.7}
+            >
               <View style={styles.menuLeft}>
                 <View style={styles.menuIcon}>
                   <item.icon size={20} color="#5f33e1" />
@@ -104,13 +132,13 @@ export default function ProfileScreen() {
                 </View>
               </View>
               <View style={styles.menuRight}>
-                {item.title === 'Notifications' ? (
+                {item.title === 'Notifikasi' ? (
                   <Switch
                     value={notificationsEnabled}
                     onValueChange={setNotificationsEnabled}
                     trackColor={{ false: '#ccc', true: '#5f33e1' }}
                   />
-                ) : item.title === 'Dark Mode' ? (
+                ) : item.title === 'Mode Gelap' ? (
                   <Switch
                     value={darkModeEnabled}
                     onValueChange={setDarkModeEnabled}
@@ -125,7 +153,11 @@ export default function ProfileScreen() {
         </View>
 
         {/* Logout Button */}
-        <TouchableOpacity style={styles.logoutButton}>
+        <TouchableOpacity 
+          style={styles.logoutButton}
+          onPress={handleLogout}
+          activeOpacity={0.7}
+        >
           <LogOut size={20} color="#ff6b6b" />
           <Text style={styles.logoutText}>Logout</Text>
         </TouchableOpacity>

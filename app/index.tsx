@@ -1,4 +1,5 @@
 import React from 'react';
+import { useRouter } from 'expo-router';
 import {
   View,
   Text,
@@ -9,83 +10,91 @@ import {
   Dimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { CheckCircle, ArrowRight } from 'lucide-react-native';
-import { router } from 'expo-router';
+import { Check, ArrowRight, Smartphone, Monitor, Tablet } from 'lucide-react-native';
 
 const { width, height } = Dimensions.get('window');
 
 export default function WelcomeScreen() {
+  const router = useRouter();
+  
   const features = [
-    'Organized Layers',
-    'Stylish & Modern Design',
-    'Fully Customizable',
-    'With Design System',
+    'Lapisan Terorganisir',
+    'Desain Bergaya & Modern',
+    'Dapat Disesuaikan Sepenuhnya',
+    'Dengan Sistem Desain',
   ];
+
+  const handleGetStarted = () => {
+    router.push('/(tabs)');
+  };
 
   return (
     <LinearGradient colors={['#f3f0ff', '#e8e3ff']} style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.content}>
-          {/* Header Section */}
+          {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.title}>
-              Task Management &{'\n'}To-do List App
-            </Text>
-            <Text style={styles.subtitle}>Premium UI Kit</Text>
+            <Text style={styles.title}>Manajemen</Text>
+            <Text style={styles.subtitle}>Tugas Terbaik</Text>
           </View>
 
-          {/* Features List */}
+          {/* Features */}
           <View style={styles.featuresContainer}>
             {features.map((feature, index) => (
               <View key={index} style={styles.featureItem}>
                 <View style={styles.checkIcon}>
-                  <CheckCircle size={16} color="#5f33e1" />
+                  <Check size={16} color="#5f33e1" />
                 </View>
                 <Text style={styles.featureText}>{feature}</Text>
               </View>
             ))}
           </View>
 
-          {/* Support Platforms */}
+          {/* Support Section */}
           <View style={styles.supportSection}>
-            <Text style={styles.supportText}>Support on</Text>
+            <Text style={styles.supportText}>Mendukung berbagai platform</Text>
             <View style={styles.platformsContainer}>
               <View style={styles.platformIcon}>
-                <Text style={styles.platformText}>XD</Text>
+                <Smartphone size={24} color="#5f33e1" />
+                <Text style={styles.platformText}>Mobile</Text>
               </View>
               <View style={styles.platformIcon}>
-                <Text style={styles.platformText}>Figma</Text>
+                <Tablet size={24} color="#5f33e1" />
+                <Text style={styles.platformText}>Tablet</Text>
               </View>
               <View style={styles.platformIcon}>
-                <Text style={styles.platformText}>Sketch</Text>
+                <Monitor size={24} color="#5f33e1" />
+                <Text style={styles.platformText}>Web</Text>
               </View>
             </View>
           </View>
 
           {/* Get Started Button */}
-          <TouchableOpacity
+          <TouchableOpacity 
             style={styles.getStartedButton}
-            onPress={() => router.replace('/(tabs)')}
+            onPress={handleGetStarted}
+            activeOpacity={0.8}
           >
             <LinearGradient
               colors={['#5f33e1', '#7c4dff']}
               style={styles.buttonGradient}
             >
-              <Text style={styles.buttonText}>Let's Start</Text>
+              <Text style={styles.buttonText}>Mulai Sekarang</Text>
               <ArrowRight size={20} color="white" />
             </LinearGradient>
           </TouchableOpacity>
         </View>
 
-        {/* App Preview Section */}
+        {/* Preview Section */}
         <View style={styles.previewSection}>
           <View style={styles.phonePreview}>
             <View style={styles.phoneScreen}>
               <View style={styles.mockHeader}>
                 <View style={styles.mockStatusBar} />
-                <Text style={styles.mockTitle}>Today's Tasks</Text>
+                <Text style={styles.mockTitle}>Tugas Hari Ini</Text>
               </View>
               <View style={styles.mockContent}>
+                <View style={styles.mockTask} />
                 <View style={styles.mockTask} />
                 <View style={styles.mockTask} />
                 <View style={styles.mockTask} />

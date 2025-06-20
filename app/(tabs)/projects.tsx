@@ -1,100 +1,148 @@
 import React from 'react';
+import { useRouter } from 'expo-router';
 import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   TouchableOpacity,
+  SafeAreaView,
   Dimensions,
+  Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Folder, Plus, MoreHorizontal } from 'lucide-react-native';
-import { router } from 'expo-router';
+import { Plus, MoreHorizontal, Calendar, Users } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
 
 export default function ProjectsScreen() {
+  const router = useRouter();
+
   const projects = [
     {
-      id: '1',
-      title: 'Office Project',
-      taskCount: 5,
-      completedTasks: 3,
+      id: 1,
+      title: 'Aplikasi Mobile',
+      description: 'Pengembangan aplikasi mobile untuk e-commerce',
       color: '#5f33e1',
-      description: 'Quarterly planning and team coordination',
+      progress: 75,
+      totalTasks: 12,
+      completedTasks: 9,
+      dueDate: '15 Feb 2024',
+      members: 4,
     },
     {
-      id: '2',
-      title: 'Personal Project',
-      taskCount: 3,
-      completedTasks: 1,
+      id: 2,
+      title: 'Website Perusahaan',
+      description: 'Redesign website utama perusahaan',
       color: '#ff6b6b',
-      description: 'Personal development and learning goals',
+      progress: 45,
+      totalTasks: 8,
+      completedTasks: 4,
+      dueDate: '28 Feb 2024',
+      members: 3,
     },
     {
-      id: '3',
-      title: 'Daily Study',
-      taskCount: 2,
-      completedTasks: 2,
+      id: 3,
+      title: 'Sistem Manajemen',
+      description: 'Sistem manajemen internal untuk HR',
       color: '#4ecdc4',
-      description: 'Continuous learning and skill improvement',
+      progress: 90,
+      totalTasks: 15,
+      completedTasks: 14,
+      dueDate: '10 Feb 2024',
+      members: 5,
     },
     {
-      id: '4',
-      title: 'Health & Fitness',
-      taskCount: 4,
-      completedTasks: 2,
+      id: 4,
+      title: 'Marketing Campaign',
+      description: 'Kampanye pemasaran digital Q1 2024',
       color: '#ffa726',
-      description: 'Workout routines and health tracking',
+      progress: 30,
+      totalTasks: 6,
+      completedTasks: 2,
+      dueDate: '31 Mar 2024',
+      members: 2,
     },
-  ];
+  ];  const handleProjectPress = (projectId: number) => {
+    Alert.alert(
+      'Detail Proyek',
+      `Membuka detail proyek ${projectId}`,
+      [
+        { text: 'Tutup', style: 'cancel' },
+        { text: 'Edit', onPress: () => console.log('Edit project') },
+        { text: 'Lihat Tugas', onPress: () => router.push('/(tabs)/tasks') },
+      ]
+    );
+  };
 
-  const getProgressPercentage = (completed: number, total: number) => {
-    return (completed / total) * 100;
+  const handleAddProject = () => {
+    router.push('/add-project' as any);
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
+    <SafeAreaView style={styles.container}>      {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Projects</Text>
-        <TouchableOpacity onPress={() => router.push('/add-project')}>
-          <Plus size={28} color="#5f33e1" />
+        <Text style={styles.headerTitle}>Proyek</Text>
+        <TouchableOpacity 
+          onPress={handleAddProject}
+          activeOpacity={0.7}
+        >
+          <Plus size={24} color="#5f33e1" />
         </TouchableOpacity>
       </View>
 
-      {/* Stats Overview */}
+      {/* Stats */}
       <View style={styles.statsContainer}>
         <View style={styles.statItem}>
           <Text style={styles.statNumber}>{projects.length}</Text>
-          <Text style={styles.statLabel}>Total Projects</Text>
+          <Text style={styles.statLabel}>Total Proyek</Text>
         </View>
         <View style={styles.statItem}>
           <Text style={styles.statNumber}>
-            {projects.reduce((sum, project) => sum + project.completedTasks, 0)}
+            {projects.filter((p) => p.progress === 100).length}
           </Text>
-          <Text style={styles.statLabel}>Completed Tasks</Text>
+          <Text style={styles.statLabel}>Selesai</Text>
         </View>
         <View style={styles.statItem}>
           <Text style={styles.statNumber}>
-            {projects.reduce((sum, project) => sum + project.taskCount, 0)}
+            {projects.filter((p) => p.progress < 100).length}
           </Text>
-          <Text style={styles.statLabel}>Total Tasks</Text>
+          <Text style={styles.statLabel}>Sedang Berlangsung</Text>
         </View>
       </View>
 
-      {/* Projects Grid */}
-      <ScrollView showsVerticalScrollIndicator={false} style={styles.projectsContainer}>
+      <ScrollView style={styles.projectsContainer} showsVerticalScrollIndicator={false}>
+        {/* Add Project Card */}
+        <TouchableOpacity
+          style={styles.addProjectCard}
+          onPress={handleAddProject}
+          activeOpacity={0.7}
+        >
+          <View style={styles.addProjectContent}>
+            <View style={styles.addIcon}>
+              <Plus size={24} color="#5f33e1" />
+            </View>
+            <Text style={styles.addProjectText}>Buat Proyek Baru</Text>
+            <Text style={styles.addProjectSubtext}>
+              Mulai proyek baru dan kelola tugas-tugas Anda dengan mudah
+            </Text>
+          </View>
+        </TouchableOpacity>
+
+        {/* Projects Grid */}
         <View style={styles.projectsGrid}>
           {projects.map((project) => (
-            <TouchableOpacity key={project.id} style={styles.projectCard}>
+            <TouchableOpacity
+              key={project.id}
+              style={styles.projectCard}
+              onPress={() => handleProjectPress(project.id)}
+              activeOpacity={0.8}
+            >
               <LinearGradient
-                colors={[project.color, `${project.color}CC`]}
+                colors={[project.color, `${project.color}dd`]}
                 style={styles.projectGradient}
               >
                 <View style={styles.projectHeader}>
-                  <Folder size={24} color="white" />
                   <TouchableOpacity>
                     <MoreHorizontal size={20} color="white" />
                   </TouchableOpacity>
@@ -102,55 +150,44 @@ export default function ProjectsScreen() {
 
                 <View style={styles.projectContent}>
                   <Text style={styles.projectTitle}>{project.title}</Text>
-                  <Text style={styles.projectDescription}>{project.description}</Text>
+                  <Text style={styles.projectDescription}>
+                    {project.description}
+                  </Text>
                 </View>
 
                 <View style={styles.projectFooter}>
                   <View style={styles.taskInfo}>
                     <Text style={styles.taskCount}>
-                      {project.completedTasks}/{project.taskCount} tasks
+                      {project.completedTasks}/{project.totalTasks} tugas
                     </Text>
+                    <View style={styles.projectMeta}>
+                      <View style={styles.metaItem}>
+                        <Calendar size={12} color="white" />
+                        <Text style={styles.metaText}>{project.dueDate}</Text>
+                      </View>
+                      <View style={styles.metaItem}>
+                        <Users size={12} color="white" />
+                        <Text style={styles.metaText}>{project.members}</Text>
+                      </View>
+                    </View>
                   </View>
-                  
+
                   <View style={styles.progressContainer}>
                     <View style={styles.progressBar}>
                       <View
                         style={[
                           styles.progressFill,
-                          {
-                            width: `${getProgressPercentage(
-                              project.completedTasks,
-                              project.taskCount
-                            )}%`,
-                          },
+                          { width: `${project.progress}%` },
                         ]}
                       />
                     </View>
-                    <Text style={styles.progressText}>
-                      {Math.round(getProgressPercentage(project.completedTasks, project.taskCount))}%
-                    </Text>
+                    <Text style={styles.progressText}>{project.progress}%</Text>
                   </View>
                 </View>
               </LinearGradient>
             </TouchableOpacity>
           ))}
         </View>
-
-        {/* Add New Project Card */}
-        <TouchableOpacity
-          style={styles.addProjectCard}
-          onPress={() => router.push('/add-project')}
-        >
-          <View style={styles.addProjectContent}>
-            <View style={styles.addIcon}>
-              <Plus size={32} color="#5f33e1" />
-            </View>
-            <Text style={styles.addProjectText}>Create New Project</Text>
-            <Text style={styles.addProjectSubtext}>
-              Start organizing your tasks with a new project
-            </Text>
-          </View>
-        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
@@ -213,81 +250,6 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 24,
   },
-  projectsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-  },
-  projectCard: {
-    width: (width - 60) / 2,
-    marginBottom: 16,
-  },
-  projectGradient: {
-    padding: 16,
-    borderRadius: 16,
-    height: 180,
-    justifyContent: 'space-between',
-  },
-  projectHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  projectContent: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  projectTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: 'white',
-    marginBottom: 4,
-    fontFamily: 'Inter-Bold',
-  },
-  projectDescription: {
-    fontSize: 12,
-    color: 'white',
-    opacity: 0.8,
-    lineHeight: 16,
-    fontFamily: 'Inter-Regular',
-  },
-  projectFooter: {
-    gap: 8,
-  },
-  taskInfo: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  taskCount: {
-    fontSize: 12,
-    color: 'white',
-    opacity: 0.9,
-    fontFamily: 'Inter-Regular',
-  },
-  progressContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  progressBar: {
-    flex: 1,
-    height: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    borderRadius: 2,
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: 'white',
-    borderRadius: 2,
-  },
-  progressText: {
-    fontSize: 10,
-    color: 'white',
-    fontWeight: '600',
-    fontFamily: 'Inter-SemiBold',
-  },
   addProjectCard: {
     backgroundColor: 'white',
     borderRadius: 16,
@@ -323,5 +285,93 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 16,
     fontFamily: 'Inter-Regular',
+  },
+  projectsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  projectCard: {
+    width: (width - 60) / 2,
+    marginBottom: 16,
+  },
+  projectGradient: {
+    padding: 16,
+    borderRadius: 16,
+    height: 220,
+    justifyContent: 'space-between',
+  },
+  projectHeader: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+  },
+  projectContent: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  projectTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: 'white',
+    marginBottom: 8,
+    fontFamily: 'Inter-Bold',
+  },
+  projectDescription: {
+    fontSize: 12,
+    color: 'white',
+    opacity: 0.8,
+    lineHeight: 16,
+    fontFamily: 'Inter-Regular',
+  },
+  projectFooter: {
+    gap: 12,
+  },
+  taskInfo: {
+    gap: 8,
+  },
+  taskCount: {
+    fontSize: 12,
+    color: 'white',
+    opacity: 0.9,
+    fontFamily: 'Inter-Regular',
+  },
+  projectMeta: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  metaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  metaText: {
+    fontSize: 10,
+    color: 'white',
+    opacity: 0.8,
+    fontFamily: 'Inter-Regular',
+  },
+  progressContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  progressBar: {
+    flex: 1,
+    height: 4,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    borderRadius: 2,
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: 'white',
+    borderRadius: 2,
+  },
+  progressText: {
+    fontSize: 10,
+    color: 'white',
+    fontWeight: '600',
+    fontFamily: 'Inter-SemiBold',
   },
 });

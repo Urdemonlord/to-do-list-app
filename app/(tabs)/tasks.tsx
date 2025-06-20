@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useRouter } from 'expo-router';
 import {
   View,
   Text,
@@ -7,71 +8,73 @@ import {
   ScrollView,
   TouchableOpacity,
   FlatList,
+  Alert,
 } from 'react-native';
-import { Search, Plus } from 'lucide-react-native';
+import { Search, Plus, Filter } from 'lucide-react-native';
 
 interface Task {
   id: string;
   title: string;
   category: string;
-  status: 'All' | 'In Progress' | 'Done';
-  priority: 'High' | 'Medium' | 'Low';
+  status: 'Semua' | 'Sedang Berlangsung' | 'Selesai';
+  priority: 'Tinggi' | 'Sedang' | 'Rendah';
   dueDate: string;
 }
 
 export default function TasksScreen() {
-  const [selectedFilter, setSelectedFilter] = useState<'All' | 'In Progress' | 'Done'>('All');
+  const router = useRouter();
+  const [selectedFilter, setSelectedFilter] = useState<'Semua' | 'Sedang Berlangsung' | 'Selesai'>('Semua');
   const [selectedDate, setSelectedDate] = useState(25);
 
-  const filters = ['All', 'In Progress', 'Done'] as const;
+  const filters = ['Semua', 'Sedang Berlangsung', 'Selesai'] as const;
   const weekDays = [21, 22, 23, 24, 25, 26, 27];
 
   const tasks: Task[] = [
     {
       id: '1',
-      title: 'Competitive Analysis',
-      category: 'Design Sprint',
-      status: 'In Progress',
-      priority: 'High',
-      dueDate: 'Today',
+      title: 'Analisis Kompetitif',
+      category: 'Sprint Desain',
+      status: 'Sedang Berlangsung',
+      priority: 'Tinggi',
+      dueDate: 'Hari ini',
     },
     {
       id: '2',
-      title: 'UX Wireframe',
-      category: 'Grocery App',
-      status: 'Done',
-      priority: 'Medium',
-      dueDate: 'Yesterday',
+      title: 'Wireframe UX',
+      category: 'Aplikasi Belanja',
+      status: 'Selesai',
+      priority: 'Sedang',
+      dueDate: 'Kemarin',
     },
     {
       id: '3',
-      title: 'User Research',
-      category: 'Mobile App',
-      status: 'In Progress',
-      priority: 'High',
-      dueDate: 'Today',
+      title: 'Riset Pengguna',
+      category: 'Aplikasi Mobile',
+      status: 'Sedang Berlangsung',
+      priority: 'Tinggi',
+      dueDate: 'Hari ini',
     },
     {
       id: '4',
-      title: 'Design System',
-      category: 'Web App',
-      status: 'Done',
-      priority: 'Low',
-      dueDate: '2 days ago',
+      title: 'Sistem Desain',
+      category: 'Aplikasi Web',
+      status: 'Selesai',
+      priority: 'Rendah',
+      dueDate: '2 hari lalu',
     },
   ];
 
-  const filteredTasks = selectedFilter === 'All' 
+  const filteredTasks = selectedFilter === 'Semua' 
     ? tasks 
     : tasks.filter(task => task.status === selectedFilter);
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'High':
+      case 'Tinggi':
         return '#ff6b6b';
-      case 'Medium':
+      case 'Sedang':
         return '#ffa726';
-      case 'Low':
+      case 'Rendah':
         return '#4ecdc4';
       default:
         return '#ccc';
@@ -80,17 +83,27 @@ export default function TasksScreen() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Done':
+      case 'Selesai':
         return '#4ecdc4';
-      case 'In Progress':
+      case 'Sedang Berlangsung':
         return '#5f33e1';
       default:
         return '#ccc';
     }
+  };  const handleTaskPress = (taskId: string) => {
+    // Navigate to task detail with task ID
+    router.push(`/task-detail?id=${taskId}` as any);
+  };
+  const handleAddTask = () => {
+    router.push('/add-task' as any);
   };
 
   const renderTask = ({ item }: { item: Task }) => (
-    <TouchableOpacity style={styles.taskCard}>
+    <TouchableOpacity 
+      style={styles.taskCard}
+      onPress={() => handleTaskPress(item.id)}
+      activeOpacity={0.7}
+    >
       <View style={styles.taskHeader}>
         <View style={styles.taskLeft}>
           <View style={[styles.priorityIndicator, { backgroundColor: getPriorityColor(item.priority) }]} />
@@ -107,23 +120,34 @@ export default function TasksScreen() {
       </View>
       <View style={styles.taskFooter}>
         <Text style={styles.dueDate}>{item.dueDate}</Text>
-        <Text style={styles.priority}>{item.priority} Priority</Text>
+        <Text style={styles.priority}>Prioritas {item.priority}</Text>
       </View>
     </TouchableOpacity>
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
+    <SafeAreaView style={styles.container}>      {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Today's Tasks</Text>
-        <TouchableOpacity>
-          <Search size={24} color="#24252c" />
-        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Tugas Hari Ini</Text>
+        <View style={styles.headerActions}>
+          <TouchableOpacity 
+            style={styles.actionButton}
+            activeOpacity={0.7}
+          >
+            <Search size={20} color="#666" />
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.actionButton}
+            activeOpacity={0.7}
+          >
+            <Filter size={20} color="#666" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Calendar Strip */}
       <View style={styles.calendarContainer}>
+        <Text style={styles.calendarTitle}>Januari 2024</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           {weekDays.map((day) => (
             <TouchableOpacity
@@ -177,10 +201,20 @@ export default function TasksScreen() {
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.tasksList}
         showsVerticalScrollIndicator={false}
+        ListEmptyComponent={() => (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyText}>Tidak ada tugas ditemukan</Text>
+            <Text style={styles.emptySubtext}>Tambahkan tugas baru untuk memulai</Text>
+          </View>
+        )}
       />
 
       {/* Add Task Button */}
-      <TouchableOpacity style={styles.addButton}>
+      <TouchableOpacity 
+        style={styles.addButton}
+        onPress={handleAddTask}
+        activeOpacity={0.8}
+      >
         <Plus size={24} color="white" />
       </TouchableOpacity>
     </SafeAreaView>
@@ -191,8 +225,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f8f9fa',
-  },
-  header: {
+  },  header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -206,9 +239,36 @@ const styles = StyleSheet.create({
     color: '#24252c',
     fontFamily: 'Inter-Bold',
   },
+  headerActions: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  actionButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'white',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+  },
   calendarContainer: {
     paddingHorizontal: 24,
     marginBottom: 24,
+  },
+  calendarTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#24252c',
+    marginBottom: 12,
+    fontFamily: 'Inter-SemiBold',
   },
   dateItem: {
     width: 48,
@@ -333,8 +393,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#666',
     fontFamily: 'Inter-Regular',
-  },
-  addButton: {
+  },  addButton: {
     position: 'absolute',
     bottom: 24,
     right: 24,
@@ -352,5 +411,22 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8,
+  },
+  emptyState: {
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  emptyText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#666',
+    marginBottom: 8,
+    fontFamily: 'Inter-SemiBold',
+  },
+  emptySubtext: {
+    fontSize: 14,
+    color: '#999',
+    textAlign: 'center',
+    fontFamily: 'Inter-Regular',
   },
 });
