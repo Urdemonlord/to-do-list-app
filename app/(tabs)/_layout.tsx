@@ -1,17 +1,20 @@
 import { Tabs } from 'expo-router';
-import { Home, CheckSquare, Folder, User } from 'lucide-react-native';
+import { Home, CheckSquare, Folder, Settings } from 'lucide-react-native';
+import { useTheme } from '../../contexts/ThemeContext';
 
 export default function TabLayout() {
+  const { theme } = useTheme();
+
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#5f33e1',
-        tabBarInactiveTintColor: 'gray',
+        tabBarActiveTintColor: theme.primary,
+        tabBarInactiveTintColor: theme.textSecondary,
         tabBarStyle: {
-          backgroundColor: 'white',
+          backgroundColor: theme.surface,
           borderTopWidth: 1,
-          borderTopColor: '#f0f0f0',
+          borderTopColor: theme.border,
           paddingBottom: 8,
           paddingTop: 8,
           height: 80,
@@ -51,11 +54,11 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="profile"
+        name="settings"
         options={{
-          title: 'Profil',
+          title: 'Pengaturan',
           tabBarIcon: ({ color, size }) => (
-            <User size={size} color={color} />
+            <Settings size={size} color={color} />
           ),
         }}
       />

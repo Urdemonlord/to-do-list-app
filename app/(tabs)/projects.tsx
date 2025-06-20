@@ -1,5 +1,5 @@
-import React from 'react';
-import { useRouter } from 'expo-router';
+import React, { useState, useCallback } from 'react';
+import { useRouter, useFocusEffect } from 'expo-router';
 import {
   View,
   Text,
@@ -12,60 +12,28 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Plus, MoreHorizontal, Calendar, Users } from 'lucide-react-native';
+import { ProjectStorage, Project } from '../../utils/storage';
+import { useTheme } from '../../contexts/ThemeContext';
 
 const { width } = Dimensions.get('window');
 
 export default function ProjectsScreen() {
   const router = useRouter();
+  const { theme } = useTheme();
+  const [projects, setProjects] = useState<Project[]>([]);
 
-  const projects = [
-    {
-      id: 1,
-      title: 'Aplikasi Mobile',
-      description: 'Pengembangan aplikasi mobile untuk e-commerce',
-      color: '#5f33e1',
-      progress: 75,
-      totalTasks: 12,
-      completedTasks: 9,
-      dueDate: '15 Feb 2024',
-      members: 4,
-    },
-    {
-      id: 2,
-      title: 'Website Perusahaan',
-      description: 'Redesign website utama perusahaan',
-      color: '#ff6b6b',
-      progress: 45,
-      totalTasks: 8,
-      completedTasks: 4,
-      dueDate: '28 Feb 2024',
-      members: 3,
-    },
-    {
-      id: 3,
-      title: 'Sistem Manajemen',
-      description: 'Sistem manajemen internal untuk HR',
-      color: '#4ecdc4',
-      progress: 90,
-      totalTasks: 15,
-      completedTasks: 14,
-      dueDate: '10 Feb 2024',
-      members: 5,
-    },
-    {
-      id: 4,
-      title: 'Marketing Campaign',
-      description: 'Kampanye pemasaran digital Q1 2024',
-      color: '#ffa726',
-      progress: 30,
-      totalTasks: 6,
-      completedTasks: 2,
-      dueDate: '31 Mar 2024',
-      members: 2,
-    },
-  ];
-  
-  const handleProjectPress = (projectId: number) => {
+  const fetchProjects = useCallback(async () => {
+    const storedProjects = await ProjectStorage.getProjects();
+    setProjects(storedProjects);
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchProjects();
+    }, [fetchProjects])
+  );
+
+  const handleProjectPress = (projectId: string) => {
     Alert.alert(
       'Detail Proyek',
       `Membuka detail proyek ${projectId}`,
@@ -77,7 +45,7 @@ export default function ProjectsScreen() {
     );
   };
 
-  const handleProjectOptions = (projectId: number) => {
+  const handleProjectOptions = (projectId: string) => {
     Alert.alert(
       'Opsi Proyek',
       'Pilih tindakan untuk proyek ini',
@@ -113,7 +81,7 @@ export default function ProjectsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <ScrollView 
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
@@ -121,11 +89,11 @@ export default function ProjectsScreen() {
         {/* Header */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.title}>Proyek</Text>
-            <Text style={styles.subtitle}>Daftar semua proyek aktif</Text>
+            <Text style={[styles.title, { color: theme.text }]}>Proyek</Text>
+            <Text style={[styles.subtitle, { color: theme.textSecondary }]}>Daftar semua proyek aktif</Text>
           </View>
           <TouchableOpacity 
-            style={styles.addButton}
+            style={[styles.addButton, { backgroundColor: theme.primary }]}
             onPress={() => router.push('/add-project')}
             activeOpacity={0.7}
           >
@@ -135,27 +103,29 @@ export default function ProjectsScreen() {
 
         {/* Project Stats */}
         <View style={styles.statsContainer}>
-          <View style={styles.statCard}>
-            <Text style={styles.statNumber}>{projects.length}</Text>
-            <Text style={styles.statLabel}>Total Proyek</Text>
+          <View style={[styles.statCard, { backgroundColor: theme.surface }]}>
+            <Text style={[styles.statNumber, { color: theme.text }]}>{projects.length}</Text>
+            <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Total Proyek</Text>
           </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statNumber}>
-              {projects.filter(p => p.progress === 100).length}
+          <View style={[styles.statCard, { backgroundColor: theme.surface }]}>
+            <Text style={[styles.statNumber, { color: theme.text }]}>
+              {projects.filter(p => p.completedTasks === p.taskCount).length}
             </Text>
-            <Text style={styles.statLabel}>Selesai</Text>
+            <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Selesai</Text>
           </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statNumber}>
-              {projects.filter(p => p.progress < 100).length}
+          <View style={[styles.statCard, { backgroundColor: theme.surface }]}>
+            <Text style={[styles.statNumber, { color: theme.text }]}>
+              {projects.filter(p => p.completedTasks < p.taskCount).length}
             </Text>
-            <Text style={styles.statLabel}>Berlangsung</Text>
+            <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Berlangsung</Text>
           </View>
         </View>
 
         {/* Projects Grid */}
         <View style={styles.projectsGrid}>
-          {projects.map((project) => (
+          {projects.map((project) => {
+            const progress = project.taskCount > 0 ? (project.completedTasks / project.taskCount) * 100 : 0;
+            return (
             <TouchableOpacity
               key={project.id}
               style={styles.projectCard}
@@ -185,11 +155,11 @@ export default function ProjectsScreen() {
                 <View style={styles.projectStats}>
                   <View style={styles.statRow}>
                     <Calendar size={16} color="white" />
-                    <Text style={styles.statText}>{project.dueDate}</Text>
+                    <Text style={styles.statText}>{new Date(project.createdAt).toLocaleDateString('id-ID')}</Text>
                   </View>
                   <View style={styles.statRow}>
                     <Users size={16} color="white" />
-                    <Text style={styles.statText}>{project.members} anggota</Text>
+                    <Text style={styles.statText}>{project.taskCount} tugas</Text>
                   </View>
                 </View>
 
@@ -198,17 +168,17 @@ export default function ProjectsScreen() {
                     <View 
                       style={[
                         styles.progressFill,
-                        { width: `${project.progress}%` }
+                        { width: `${progress}%` }
                       ]}
                     />
                   </View>
                   <Text style={styles.progressText}>
-                    {project.completedTasks}/{project.totalTasks} tugas
+                    {project.completedTasks}/{project.taskCount} tugas
                   </Text>
                 </View>
               </LinearGradient>
             </TouchableOpacity>
-          ))}
+          )})}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -218,7 +188,6 @@ export default function ProjectsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f3f0ff',
   },
   scrollContent: {
     padding: 20,
@@ -233,19 +202,16 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontFamily: 'Inter-Bold',
-    color: '#1a1a1a',
     marginBottom: 4,
   },
   subtitle: {
     fontSize: 16,
     fontFamily: 'Inter-Regular',
-    color: '#666',
   },
   addButton: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#5f33e1',
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
@@ -261,7 +227,6 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    backgroundColor: 'white',
     borderRadius: 16,
     padding: 16,
     shadowColor: '#000',
@@ -273,13 +238,11 @@ const styles = StyleSheet.create({
   statNumber: {
     fontSize: 24,
     fontFamily: 'Inter-Bold',
-    color: '#1a1a1a',
     marginBottom: 4,
   },
   statLabel: {
     fontSize: 12,
     fontFamily: 'Inter-Regular',
-    color: '#666',
   },
   projectsGrid: {
     flexDirection: 'row',

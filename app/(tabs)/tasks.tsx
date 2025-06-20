@@ -1,61 +1,39 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, FlatList, ScrollView } from 'react-native';
-import { Link, router } from 'expo-router';
+import { Link, router, useFocusEffect } from 'expo-router';
 import { Plus } from 'lucide-react-native';
-
-interface Task {
-  id: string;
-  title: string;
-  category: string;
-  status: 'Semua' | 'Sedang Berlangsung' | 'Selesai';
-  priority: 'Tinggi' | 'Sedang' | 'Rendah';
-  dueDate: string;
-}
+import { TaskStorage, Task } from '../../utils/storage';
+import { useTheme } from '../../contexts/ThemeContext';
 
 export default function TasksScreen() {
+  const { theme } = useTheme();
   const [selectedFilter, setSelectedFilter] = useState<'Semua' | 'Sedang Berlangsung' | 'Selesai'>('Semua');
-  const [selectedDate, setSelectedDate] = useState(25);
+  const [selectedDate, setSelectedDate] = useState(new Date().getDate());
+  const [tasks, setTasks] = useState<Task[]>([]);
+
+  const fetchTasks = useCallback(async () => {
+    const storedTasks = await TaskStorage.getTasks();
+    setTasks(storedTasks);
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchTasks();
+    }, [fetchTasks])
+  );
 
   const filters = ['Semua', 'Sedang Berlangsung', 'Selesai'] as const;
-  const weekDays = [21, 22, 23, 24, 25, 26, 27];
 
-  const tasks: Task[] = [
-    {
-      id: '1',
-      title: 'Analisis Kompetitif',
-      category: 'Sprint Desain',
-      status: 'Sedang Berlangsung',
-      priority: 'Tinggi',
-      dueDate: 'Hari ini',
-    },
-    {
-      id: '2',
-      title: 'Wireframe UX',
-      category: 'Aplikasi Belanja',
-      status: 'Selesai',
-      priority: 'Sedang',
-      dueDate: 'Kemarin',
-    },
-    {
-      id: '3',
-      title: 'Riset Pengguna',
-      category: 'Aplikasi Mobile',
-      status: 'Sedang Berlangsung',
-      priority: 'Tinggi',
-      dueDate: 'Hari ini',
-    },
-    {
-      id: '4',
-      title: 'Sistem Desain',
-      category: 'Aplikasi Web',
-      status: 'Selesai',
-      priority: 'Rendah',
-      dueDate: '2 hari lalu',
-    },
-  ];
+  // Generate week days dynamically based on current date
+  const today = new Date();
+  const weekDays = Array.from({ length: 7 }, (_, i) => {
+    const date = new Date(today);
+    date.setDate(today.getDate() - today.getDay() + i);
+    return date.getDate();
+  });
 
-  const filteredTasks = selectedFilter === 'Semua' 
-    ? tasks 
+  const filteredTasks = selectedFilter === 'Semua'
+    ? tasks
     : tasks.filter(task => task.status === selectedFilter);
 
   const getPriorityColor = (priority: string) => {
@@ -81,18 +59,18 @@ export default function TasksScreen() {
         return '#ccc';
     }
   };
-  
+
   const handleTaskPress = (taskId: string) => {
-    // Navigate to task detail with task ID
     router.push(`/task-detail?id=${taskId}` as any);
   };
+
   const handleAddTask = () => {
     router.push('/add-task' as any);
   };
 
   const renderTask = ({ item }: { item: Task }) => (
-    <TouchableOpacity 
-      style={styles.taskCard}
+    <TouchableOpacity
+      style={[styles.taskCard, { backgroundColor: theme.surface }]}
       onPress={() => handleTaskPress(item.id)}
       activeOpacity={0.7}
     >
@@ -100,8 +78,8 @@ export default function TasksScreen() {
         <View style={styles.taskLeft}>
           <View style={[styles.priorityIndicator, { backgroundColor: getPriorityColor(item.priority) }]} />
           <View style={styles.taskInfo}>
-            <Text style={styles.taskTitle}>{item.title}</Text>
-            <Text style={styles.taskCategory}>{item.category}</Text>
+            <Text style={[styles.taskTitle, { color: theme.text }]}>{item.title}</Text>
+            <Text style={[styles.taskCategory, { color: theme.textSecondary }]}>{item.category}</Text>
           </View>
         </View>
         <View style={styles.taskRight}>
@@ -111,18 +89,18 @@ export default function TasksScreen() {
         </View>
       </View>
       <View style={styles.taskFooter}>
-        <Text style={styles.dueDate}>{item.dueDate}</Text>
-        <Text style={styles.priority}>Prioritas {item.priority}</Text>
+        <Text style={[styles.dueDate, { color: theme.textSecondary }]}>{new Date(item.dueDate).toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</Text>
+        <Text style={[styles.priority, { color: theme.textSecondary }]}>Prioritas {item.priority}</Text>
       </View>
     </TouchableOpacity>
   );
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       <View style={styles.header}>
-        <Text style={styles.title}>Daftar Tugas</Text>
+        <Text style={[styles.title, { color: theme.text }]}>Daftar Tugas</Text>
         <Link href="/add-task" asChild>
-          <TouchableOpacity style={styles.addButton}>
+          <TouchableOpacity style={[styles.addButton, { backgroundColor: theme.primary }]}>
             <Text style={styles.addButtonText}>+ Tambah Tugas</Text>
           </TouchableOpacity>
         </Link>
@@ -130,21 +108,23 @@ export default function TasksScreen() {
 
       {/* Calendar Strip */}
       <View style={styles.calendarContainer}>
-        <Text style={styles.calendarTitle}>Januari 2024</Text>
+        <Text style={[styles.calendarTitle, { color: theme.text }]}>{new Date().toLocaleString('id-ID', { month: 'long', year: 'numeric' })}</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           {weekDays.map((day) => (
             <TouchableOpacity
               key={day}
               style={[
                 styles.dateItem,
-                selectedDate === day && styles.selectedDateItem,
+                { backgroundColor: theme.surface },
+                selectedDate === day && { backgroundColor: theme.primary },
               ]}
               onPress={() => setSelectedDate(day)}
             >
               <Text
                 style={[
                   styles.dateText,
-                  selectedDate === day && styles.selectedDateText,
+                  { color: theme.textSecondary },
+                  selectedDate === day && { color: theme.primaryText },
                 ]}
               >
                 {day}
@@ -161,14 +141,16 @@ export default function TasksScreen() {
             key={filter}
             style={[
               styles.filterTab,
-              selectedFilter === filter && styles.activeFilterTab,
+              { backgroundColor: theme.surface },
+              selectedFilter === filter && { backgroundColor: theme.primary },
             ]}
             onPress={() => setSelectedFilter(filter)}
           >
             <Text
               style={[
                 styles.filterText,
-                selectedFilter === filter && styles.activeFilterText,
+                { color: theme.textSecondary },
+                selectedFilter === filter && { color: theme.primaryText },
               ]}
             >
               {filter}
@@ -186,14 +168,14 @@ export default function TasksScreen() {
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={() => (
           <View style={styles.emptyState}>
-            <Text style={styles.emptyText}>Tidak ada tugas ditemukan</Text>
-            <Text style={styles.emptySubtext}>Tambahkan tugas baru untuk memulai</Text>
+            <Text style={[styles.emptyText, { color: theme.textSecondary }]}>Tidak ada tugas ditemukan</Text>
+            <Text style={[styles.emptySubtext, { color: theme.textSecondary }]}>Tambahkan tugas baru untuk memulai</Text>
           </View>
         )}
       />
       {/* Add Task Floating Button */}
-      <TouchableOpacity 
-        style={styles.floatingAddButton}
+      <TouchableOpacity
+        style={[styles.floatingAddButton, { backgroundColor: theme.primary }]}
         onPress={handleAddTask}
         activeOpacity={0.8}
       >
@@ -206,7 +188,6 @@ export default function TasksScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
     padding: 20,
   },
   header: {
@@ -218,11 +199,9 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#24252c',
     fontFamily: 'Inter-Bold',
   },
   addButton: {
-    backgroundColor: '#5f33e1',
     borderRadius: 16,
     paddingVertical: 10,
     paddingHorizontal: 16,
@@ -248,7 +227,6 @@ const styles = StyleSheet.create({
   calendarTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#24252c',
     marginBottom: 12,
     fontFamily: 'Inter-SemiBold',
   },
@@ -259,19 +237,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
-    backgroundColor: 'white',
-  },
-  selectedDateItem: {
-    backgroundColor: '#5f33e1',
   },
   dateText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#666',
     fontFamily: 'Inter-SemiBold',
-  },
-  selectedDateText: {
-    color: 'white',
   },
   filterContainer: {
     flexDirection: 'row',
@@ -282,25 +252,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 20,
-    backgroundColor: 'white',
-  },
-  activeFilterTab: {
-    backgroundColor: '#5f33e1',
   },
   filterText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#666',
     fontFamily: 'Inter-SemiBold',
-  },
-  activeFilterText: {
-    color: 'white',
   },
   tasksList: {
     paddingBottom: 100,
   },
   taskCard: {
-    backgroundColor: 'white',
     borderRadius: 16,
     padding: 20,
     marginBottom: 16,
@@ -336,13 +297,11 @@ const styles = StyleSheet.create({
   taskTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#24252c',
     marginBottom: 4,
     fontFamily: 'Inter-SemiBold',
   },
   taskCategory: {
     fontSize: 12,
-    color: '#666',
     fontFamily: 'Inter-Regular',
   },
   taskRight: {
@@ -366,12 +325,10 @@ const styles = StyleSheet.create({
   },
   dueDate: {
     fontSize: 12,
-    color: '#666',
     fontFamily: 'Inter-Regular',
   },
   priority: {
     fontSize: 12,
-    color: '#666',
     fontFamily: 'Inter-Regular',
   },
   emptyState: {
@@ -381,12 +338,11 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#666',
     marginBottom: 8,
     fontFamily: 'Inter-SemiBold',
-  },  emptySubtext: {
+  },
+  emptySubtext: {
     fontSize: 14,
-    color: '#999',
     textAlign: 'center',
     fontFamily: 'Inter-Regular',
   },
@@ -397,7 +353,6 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#5f33e1',
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',

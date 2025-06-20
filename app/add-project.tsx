@@ -12,9 +12,12 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowLeft, Calendar, Folder, Check, Briefcase, User, BookOpen, Heart, Home, Car } from 'lucide-react-native';
+import { useTheme } from '../contexts/ThemeContext';
+import { ProjectStorage } from '../utils/storage';
 
 export default function AddProjectScreen() {
   const router = useRouter();
+  const { theme } = useTheme();
   const [projectName, setProjectName] = useState('');
   const [projectDescription, setProjectDescription] = useState('');
   const [projectType, setProjectType] = useState('');
@@ -41,87 +44,109 @@ export default function AddProjectScreen() {
     { id: 'travel', name: 'Perjalanan', icon: Car },
   ];
 
-  const handleCreateProject = () => {
+  const handleCreateProject = async () => {
     if (!projectName.trim()) {
       Alert.alert('Error', 'Silakan masukkan nama proyek');
       return;
     }
 
     if (!projectType) {
-      Alert.alert('Error', 'Silakan pilih jenis proyek');
+      Alert.alert('Error', 'Silakan pilih tipe proyek');
       return;
     }
 
-    Alert.alert(
-      'Berhasil',
-      'Proyek berhasil dibuat!',
-      [{ text: 'OK', onPress: () => router.back() }]
-    );
+    try {
+      await ProjectStorage.addProject({
+        title: projectName,
+        description: projectDescription,
+        type: projectType,
+        color: selectedColor,
+        taskCount: 0,
+        completedTasks: 0,
+      });
+
+      Alert.alert(
+        'Berhasil',
+        'Proyek berhasil dibuat!',
+        [{ text: 'OK', onPress: () => router.back() }]
+      );
+    } catch (error) {
+      Alert.alert('Error', 'Gagal membuat proyek');
+    }
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <ArrowLeft size={24} color="#24252c" />
+      <View style={[styles.header, { backgroundColor: theme.surface }]}>
+        <TouchableOpacity 
+          style={styles.backButton}
+          onPress={() => router.back()}
+        >
+          <ArrowLeft size={24} color={theme.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Tambah Proyek</Text>
-        <TouchableOpacity onPress={handleCreateProject}>
-          <Check size={24} color="#5f33e1" />
-        </TouchableOpacity>
+        <Text style={[styles.headerTitle, { color: theme.text }]}>Tambah Proyek</Text>
+        <View style={styles.placeholder} />
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        style={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Project Name */}
-        <View style={styles.inputSection}>
-          <Text style={styles.inputLabel}>Nama Proyek</Text>
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>Nama Proyek</Text>
           <TextInput
-            style={styles.textInput}
-            placeholder="Masukkan nama proyek"
+            style={[styles.textInput, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border }]}
+            placeholder="Masukkan nama proyek..."
+            placeholderTextColor={theme.textSecondary}
             value={projectName}
             onChangeText={setProjectName}
           />
         </View>
 
         {/* Project Description */}
-        <View style={styles.inputSection}>
-          <Text style={styles.inputLabel}>Deskripsi</Text>
-          <TextInput
-            style={[styles.textInput, styles.textArea]}
-            placeholder="Deskripsi proyek (opsional)"
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>Deskripsi</Text>          <TextInput
+            style={[styles.textArea, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border }]}
+            placeholder="Masukkan deskripsi proyek..."
+            placeholderTextColor={theme.textSecondary}
             value={projectDescription}
             onChangeText={setProjectDescription}
-            multiline
+            multiline={true}
             numberOfLines={4}
+            textAlignVertical="top"
           />
         </View>
 
         {/* Project Type */}
-        <View style={styles.inputSection}>
-          <Text style={styles.inputLabel}>Jenis Proyek</Text>
-          <View style={styles.typeGrid}>
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>Tipe Proyek</Text>
+          <View style={styles.typeContainer}>
             {projectTypes.map((type) => {
-              const IconComponent = type.icon;
+              const Icon = type.icon;
               return (
                 <TouchableOpacity
                   key={type.id}
                   style={[
                     styles.typeItem,
-                    projectType === type.id && styles.selectedTypeItem,
+                    { backgroundColor: theme.surface, borderColor: theme.border },
+                    projectType === type.id && {
+                      backgroundColor: theme.primary + '20',
+                      borderColor: theme.primary,
+                    },
                   ]}
                   onPress={() => setProjectType(type.id)}
                 >
-                  <IconComponent
-                    size={24}
-                    color={projectType === type.id ? 'white' : '#5f33e1'}
+                  <Icon 
+                    size={20} 
+                    color={projectType === type.id ? theme.primary : theme.textSecondary} 
                   />
-                  <Text
-                    style={[
-                      styles.typeLabel,
-                      projectType === type.id && styles.selectedTypeLabel,
-                    ]}
-                  >
+                  <Text style={[
+                    styles.typeText,
+                    { color: theme.text },
+                    projectType === type.id && { color: theme.primary }
+                  ]}>
                     {type.name}
                   </Text>
                 </TouchableOpacity>
@@ -130,60 +155,48 @@ export default function AddProjectScreen() {
           </View>
         </View>
 
-        {/* Due Date */}
-        <View style={styles.inputSection}>
-          <Text style={styles.inputLabel}>Tanggal Target</Text>
-          <TouchableOpacity style={styles.dateInput}>
-            <Text style={styles.dateText}>{selectedDate}</Text>
-            <Calendar size={20} color="#666" />
-          </TouchableOpacity>
-        </View>
-
-        {/* Color Selection */}
-        <View style={styles.inputSection}>
-          <Text style={styles.inputLabel}>Warna Proyek</Text>
-          <View style={styles.colorGrid}>
+        {/* Project Color */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>Warna Proyek</Text>
+          <View style={styles.colorContainer}>
             {projectColors.map((color) => (
               <TouchableOpacity
                 key={color}
                 style={[
                   styles.colorItem,
                   { backgroundColor: color },
-                  selectedColor === color && styles.selectedColorItem,
+                  selectedColor === color && styles.selectedColor,
                 ]}
                 onPress={() => setSelectedColor(color)}
-              />
+              >
+                {selectedColor === color && (
+                  <Check size={16} color="white" />
+                )}
+              </TouchableOpacity>
             ))}
           </View>
         </View>
 
-        {/* Preview */}
-        <View style={styles.previewSection}>
-          <Text style={styles.inputLabel}>Pratinjau</Text>
-          <LinearGradient
-            colors={[selectedColor, `${selectedColor}dd`]}
-            style={styles.previewCard}
+        {/* Due Date */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>Tanggal Target</Text>
+          <TouchableOpacity style={[styles.dateButton, { backgroundColor: theme.surface, borderColor: theme.border }]}
+            onPress={() => {}} // Tambahkan fungsi pemilih tanggal di sini
           >
-            <View style={styles.previewHeader}>
-              <Text style={styles.previewTaskCount}>0/0 tugas</Text>
-              <Folder size={20} color="white" />
-            </View>
-            <Text style={styles.previewTitle}>
-              {projectName || 'Nama Proyek'}
-            </Text>
-          </LinearGradient>
+            <Calendar size={20} color={theme.primary} />
+            <Text style={[styles.dateText, { color: theme.text }]}>{selectedDate}</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
 
       {/* Create Button */}
       <View style={styles.buttonContainer}>
-        <TouchableOpacity onPress={handleCreateProject}>
-          <LinearGradient
-            colors={[selectedColor, `${selectedColor}dd`]}
-            style={styles.createButton}
-          >
-            <Text style={styles.createButtonText}>Buat Proyek</Text>
-          </LinearGradient>
+        <TouchableOpacity 
+          style={[styles.createButton, { backgroundColor: theme.primary }]}
+          onPress={handleCreateProject}
+        >
+          <Check size={20} color="white" />
+          <Text style={styles.createButtonText}>Buat Proyek</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -193,7 +206,6 @@ export default function AddProjectScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
   },
   header: {
     flexDirection: 'row',
@@ -206,29 +218,43 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#24252c',
     fontFamily: 'Inter-Bold',
+  },
+  backButton: {
+    padding: 8,
+    borderRadius: 24,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  placeholder: {
+    width: 24,
+    height: 24,
   },
   content: {
     flex: 1,
     paddingHorizontal: 24,
   },
-  inputSection: {
+  section: {
     marginBottom: 24,
   },
-  inputLabel: {
+  sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#24252c',
     marginBottom: 12,
     fontFamily: 'Inter-SemiBold',
   },
   textInput: {
-    backgroundColor: 'white',
     borderRadius: 12,
     padding: 16,
     fontSize: 16,
-    color: '#24252c',
+    borderWidth: 1,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -243,8 +269,21 @@ const styles = StyleSheet.create({
     height: 100,
     paddingTop: 16,
     textAlignVertical: 'top',
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 16,
+    borderWidth: 1,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+    fontFamily: 'Inter-Regular',
   },
-  typeGrid: {
+  typeContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 12,
@@ -252,10 +291,10 @@ const styles = StyleSheet.create({
   typeItem: {
     flex: 1,
     minWidth: '30%',
-    backgroundColor: 'white',
     padding: 16,
     borderRadius: 12,
     alignItems: 'center',
+    borderWidth: 1,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -265,26 +304,19 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 2,
   },
-  selectedTypeItem: {
-    backgroundColor: '#5f33e1',
-  },
-  typeLabel: {
+  typeText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#24252c',
     marginTop: 8,
     fontFamily: 'Inter-SemiBold',
   },
-  selectedTypeLabel: {
-    color: 'white',
-  },
-  dateInput: {
+  dateButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'white',
     padding: 16,
     borderRadius: 12,
     justifyContent: 'space-between',
+    borderWidth: 1,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -296,10 +328,9 @@ const styles = StyleSheet.create({
   },
   dateText: {
     fontSize: 16,
-    color: '#24252c',
     fontFamily: 'Inter-Regular',
   },
-  colorGrid: {
+  colorContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 12,
@@ -311,7 +342,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  selectedColorItem: {
+  selectedColor: {
     borderWidth: 3,
     borderColor: 'white',
     shadowColor: '#000',
@@ -323,32 +354,6 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 4,
   },
-  previewSection: {
-    marginBottom: 24,
-  },
-  previewCard: {
-    padding: 20,
-    borderRadius: 16,
-    height: 120,
-    justifyContent: 'space-between',
-  },
-  previewHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  previewTaskCount: {
-    fontSize: 12,
-    color: 'white',
-    opacity: 0.8,
-    fontFamily: 'Inter-Regular',
-  },
-  previewTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: 'white',
-    fontFamily: 'Inter-Bold',
-  },
   buttonContainer: {
     paddingHorizontal: 24,
     paddingBottom: 24,
@@ -358,6 +363,9 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderRadius: 16,
     alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
   },
   createButtonText: {
     fontSize: 18,

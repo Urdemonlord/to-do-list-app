@@ -27,9 +27,15 @@
     "web": {
       "favicon": "./assets/favicon.png",
       "bundler": "metro"
-    },
-    "plugins": [
-      "expo-router"
+    },    "plugins": [
+      "expo-router",
+      [
+        "sentry-expo",
+        {
+          "organization": "codex-dev",
+          "project": "react-native"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

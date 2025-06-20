@@ -10,7 +10,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Folder, Plus, ChevronRight } from 'lucide-react-native';
+import { Folder, Plus, ChevronRight, Settings } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { useTheme } from '../../contexts/ThemeContext';
 import { ProjectStorage, TaskStorage, Project, Task } from '../../utils/storage';
@@ -82,31 +82,35 @@ export default function HomeScreen() {
   const handleViewAllTasks = () => {
     router.push('/(tabs)/tasks');
   };
-
   const handleTaskPress = (taskId: string) => {
     router.push(`/task-detail?id=${taskId}` as any);
-  };  return (
+  };
+  return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <ScrollView 
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          <RefreshControl 
+            refreshing={refreshing} 
+            onRefresh={onRefresh}
+            tintColor={theme.primary}
+            colors={[theme.primary]}
+          />
         }
       >
         {/* Header */}
-        <View style={styles.header}>
-          <View style={styles.headerTextContainer}>
+        <View style={styles.header}>          <View style={styles.headerTextContainer}>
             <Text style={[styles.greeting, { color: theme.textSecondary }]}>Selamat Pagi!</Text>
-            <Text style={[styles.userName, { color: theme.text }]}>Livia Vaccaro</Text>
+            <Text style={[styles.userName, { color: theme.text }]}>Mari kelola tugas Anda hari ini</Text>
           </View>
-          <TouchableOpacity 
-            style={styles.profileButton}
-            onPress={() => router.push('/(tabs)/profile')}
+          <TouchableOpacity
+            style={styles.settingsButton}
+            onPress={() => router.push('/(tabs)/settings' as any)}
             activeOpacity={0.7}
           >
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>LV</Text>
+            <View style={[styles.settingsIcon, { backgroundColor: theme.surface }]}>
+              <Settings size={20} color={theme.primary} />
             </View>
           </TouchableOpacity>
         </View>
@@ -136,10 +140,8 @@ export default function HomeScreen() {
             >
               <Plus size={24} color={theme.primary} />
             </TouchableOpacity>
-          </View>
-
-          <ScrollView 
-            horizontal 
+          </View>          <ScrollView 
+            horizontal={true}
             showsHorizontalScrollIndicator={false} 
             style={styles.projectsScroll}
             contentContainerStyle={{ paddingRight: 24 }}
@@ -148,7 +150,8 @@ export default function HomeScreen() {
               <TouchableOpacity 
                 key={project.id} 
                 style={styles.projectCard}
-                onPress={() => handleProjectPress(project.id)}                activeOpacity={0.8}
+                onPress={() => handleProjectPress(project.id)}
+                activeOpacity={0.8}
               >
                 <LinearGradient
                   colors={[project.color, `${project.color}CC`]}
@@ -243,22 +246,20 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: 24,
     fontFamily: 'Inter-Bold',
-  },
-  profileButton: {
+  },  settingsButton: {
     marginLeft: 'auto',
   },
-  avatar: {
+  settingsIcon: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#5f33e1',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  avatarText: {
-    color: 'white',
-    fontSize: 18,
-    fontFamily: 'Inter-SemiBold',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   statsContainer: {
     flexDirection: 'row',
@@ -395,17 +396,18 @@ const styles = StyleSheet.create({
   },
   taskInfo: {
     flex: 1,
-  },
-  taskTitle: {
+  },  taskTitle: {
     fontSize: 16,
     color: '#1a1a1a',
     fontFamily: 'Inter-SemiBold',
     marginBottom: 4,
-  },  taskCategory: {
+  },
+  taskCategory: {
     fontSize: 12,
     color: '#666',
     fontFamily: 'Inter-Regular',
-  },  headerTextContainer: {
+  },
+  headerTextContainer: {
     flex: 1,
   },
   emptyState: {

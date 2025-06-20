@@ -86,13 +86,12 @@ export default function AddProjectScreen() {
 
         {/* Project Description */}
         <View style={styles.inputSection}>
-          <Text style={styles.inputLabel}>Deskripsi</Text>
-          <TextInput
+          <Text style={styles.inputLabel}>Deskripsi</Text>          <TextInput
             style={[styles.textInput, styles.textArea]}
             placeholder="Deskripsi proyek (opsional)"
             value={projectDescription}
             onChangeText={setProjectDescription}
-            multiline
+            multiline={true}
             numberOfLines={4}
           />
         </View>

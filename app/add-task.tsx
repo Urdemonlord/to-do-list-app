@@ -12,14 +12,17 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowLeft, Calendar, Check, Flag, Clock, User } from 'lucide-react-native';
+import { useTheme } from '../contexts/ThemeContext';
+import { TaskStorage } from '../utils/storage';
 
 export default function AddTaskScreen() {
   const router = useRouter();
+  const { theme } = useTheme();
   const [taskTitle, setTaskTitle] = useState('');
   const [taskDescription, setTaskDescription] = useState('');
   const [selectedPriority, setSelectedPriority] = useState('Sedang');
   const [selectedProject, setSelectedProject] = useState('');
-  const [selectedDate, setSelectedDate] = useState('25 Jan, 2024');
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString());
   const [selectedTime, setSelectedTime] = useState('09:00');
 
   const priorities = [
@@ -35,111 +38,101 @@ export default function AddTaskScreen() {
     { id: 'marketing', name: 'Kampanye Marketing' },
   ];
 
-  const handleCreateTask = () => {
+  const handleCreateTask = async () => {
     if (!taskTitle.trim()) {
       Alert.alert('Error', 'Silakan masukkan judul tugas');
       return;
     }
 
-    Alert.alert(
-      'Berhasil',
-      'Tugas berhasil dibuat!',
-      [{ text: 'OK', onPress: () => router.back() }]
-    );
+    try {
+      await TaskStorage.addTask({
+        title: taskTitle,
+        description: taskDescription,
+        category: selectedProject || 'Umum',
+        status: 'Sedang Berlangsung',
+        priority: selectedPriority as 'Tinggi' | 'Sedang' | 'Rendah',
+        dueDate: selectedDate,
+      });
+
+      Alert.alert(
+        'Berhasil',
+        'Tugas berhasil dibuat!',
+        [{ text: 'OK', onPress: () => router.back() }]
+      );
+    } catch (error) {
+      Alert.alert('Error', 'Gagal membuat tugas');
+    }
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <ArrowLeft size={24} color="#24252c" />
+      <View style={[styles.header, { backgroundColor: theme.surface }]}>
+        <TouchableOpacity 
+          style={styles.backButton}
+          onPress={() => router.back()}
+        >
+          <ArrowLeft size={24} color={theme.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Tambah Tugas</Text>
-        <TouchableOpacity onPress={handleCreateTask}>
-          <Check size={24} color="#5f33e1" />
-        </TouchableOpacity>
+        <Text style={[styles.headerTitle, { color: theme.text }]}>Tambah Tugas</Text>
+        <View style={styles.placeholder} />
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        style={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Task Title */}
-        <View style={styles.inputSection}>
-          <Text style={styles.inputLabel}>Judul Tugas</Text>
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>Judul Tugas</Text>
           <TextInput
-            style={styles.textInput}
-            placeholder="Masukkan judul tugas"
+            style={[styles.textInput, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border }]}
+            placeholder="Masukkan judul tugas..."
+            placeholderTextColor={theme.textSecondary}
             value={taskTitle}
             onChangeText={setTaskTitle}
           />
         </View>
 
         {/* Task Description */}
-        <View style={styles.inputSection}>
-          <Text style={styles.inputLabel}>Deskripsi</Text>
-          <TextInput
-            style={[styles.textInput, styles.textArea]}
-            placeholder="Deskripsi tugas (opsional)"
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>Deskripsi</Text>          <TextInput
+            style={[styles.textArea, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border }]}
+            placeholder="Masukkan deskripsi tugas..."
+            placeholderTextColor={theme.textSecondary}
             value={taskDescription}
             onChangeText={setTaskDescription}
-            multiline
+            multiline={true}
             numberOfLines={4}
+            textAlignVertical="top"
           />
         </View>
 
-        {/* Project Selection */}
-        <View style={styles.inputSection}>
-          <Text style={styles.inputLabel}>Proyek</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <View style={styles.optionsRow}>
-              {projects.map((project) => (
-                <TouchableOpacity
-                  key={project.id}
-                  style={[
-                    styles.optionItem,
-                    selectedProject === project.id && styles.selectedOptionItem,
-                  ]}
-                  onPress={() => setSelectedProject(project.id)}
-                >
-                  <User size={16} color={selectedProject === project.id ? 'white' : '#5f33e1'} />
-                  <Text
-                    style={[
-                      styles.optionText,
-                      selectedProject === project.id && styles.selectedOptionText,
-                    ]}
-                  >
-                    {project.name}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </ScrollView>
-        </View>
-
-        {/* Priority Selection */}
-        <View style={styles.inputSection}>
-          <Text style={styles.inputLabel}>Prioritas</Text>
-          <View style={styles.priorityGrid}>
+        {/* Priority */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>Prioritas</Text>
+          <View style={styles.priorityContainer}>
             {priorities.map((priority) => (
               <TouchableOpacity
                 key={priority.id}
                 style={[
                   styles.priorityItem,
+                  { backgroundColor: theme.surface, borderColor: theme.border },
                   selectedPriority === priority.id && {
-                    backgroundColor: priority.color,
+                    backgroundColor: priority.color + '20',
+                    borderColor: priority.color,
                   },
                 ]}
                 onPress={() => setSelectedPriority(priority.id)}
               >
-                <Flag
-                  size={20}
-                  color={selectedPriority === priority.id ? 'white' : priority.color}
-                />
-                <Text
-                  style={[
-                    styles.priorityText,
-                    { color: selectedPriority === priority.id ? 'white' : priority.color },
-                  ]}
-                >
+                <View style={[styles.priorityIcon, { backgroundColor: priority.color }]}>
+                  <Flag size={16} color="white" />
+                </View>
+                <Text style={[
+                  styles.priorityText,
+                  { color: theme.text },
+                  selectedPriority === priority.id && { color: priority.color }
+                ]}>
                   {priority.name}
                 </Text>
               </TouchableOpacity>
@@ -147,65 +140,66 @@ export default function AddTaskScreen() {
           </View>
         </View>
 
-        {/* Date and Time */}
-        <View style={styles.dateTimeSection}>
-          <View style={styles.dateTimeItem}>
-            <Text style={styles.inputLabel}>Tanggal</Text>
-            <TouchableOpacity style={styles.dateTimeInput}>
-              <Calendar size={20} color="#666" />
-              <Text style={styles.dateTimeText}>{selectedDate}</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.dateTimeItem}>
-            <Text style={styles.inputLabel}>Waktu</Text>
-            <TouchableOpacity style={styles.dateTimeInput}>
-              <Clock size={20} color="#666" />
-              <Text style={styles.dateTimeText}>{selectedTime}</Text>
-            </TouchableOpacity>
+        {/* Project */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>Proyek</Text>
+          <View style={styles.projectContainer}>
+            {projects.map((project) => (
+              <TouchableOpacity
+                key={project.id}
+                style={[
+                  styles.projectItem,
+                  { backgroundColor: theme.surface, borderColor: theme.border },
+                  selectedProject === project.name && {
+                    backgroundColor: theme.primary + '20',
+                    borderColor: theme.primary,
+                  },
+                ]}
+                onPress={() => setSelectedProject(project.name)}
+              >
+                <User size={16} color={selectedProject === project.name ? theme.primary : theme.textSecondary} />
+                <Text style={[
+                  styles.projectText,
+                  { color: theme.text },
+                  selectedProject === project.name && { color: theme.primary }
+                ]}>
+                  {project.name}
+                </Text>
+              </TouchableOpacity>
+            ))}
           </View>
         </View>
 
-        {/* Preview */}
-        <View style={styles.previewSection}>
-          <Text style={styles.inputLabel}>Pratinjau</Text>
-          <View style={styles.previewCard}>
-            <View style={styles.previewHeader}>
-              <View style={styles.previewLeft}>
-                <View style={[
-                  styles.previewPriority, 
-                  { backgroundColor: priorities.find(p => p.id === selectedPriority)?.color }
-                ]} />
-                <View>
-                  <Text style={styles.previewTitle}>
-                    {taskTitle || 'Judul Tugas'}
-                  </Text>
-                  <Text style={styles.previewProject}>
-                    {projects.find(p => p.id === selectedProject)?.name || 'Pilih Proyek'}
-                  </Text>
-                </View>
-              </View>
-              <View style={[
-                styles.previewStatus,
-                { backgroundColor: '#ffa726' }
-              ]}>
-                <Text style={styles.previewStatusText}>Baru</Text>
-              </View>
-            </View>
-            <Text style={styles.previewDate}>{selectedDate} • {selectedTime}</Text>
+        {/* Date & Time */}
+        <View style={styles.dateTimeContainer}>
+          <View style={[styles.section, { flex: 1, marginRight: 8 }]}>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>Tanggal</Text>
+            <TouchableOpacity style={[styles.dateTimeButton, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+              <Calendar size={20} color={theme.primary} />
+              <Text style={[styles.dateTimeText, { color: theme.text }]}>
+                {new Date(selectedDate).toLocaleDateString('id-ID')}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={[styles.section, { flex: 1, marginLeft: 8 }]}>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>Waktu</Text>
+            <TouchableOpacity style={[styles.dateTimeButton, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+              <Clock size={20} color={theme.primary} />
+              <Text style={[styles.dateTimeText, { color: theme.text }]}>{selectedTime}</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </ScrollView>
 
       {/* Create Button */}
       <View style={styles.buttonContainer}>
-        <TouchableOpacity onPress={handleCreateTask}>
-          <LinearGradient
-            colors={['#5f33e1', '#7c4dff']}
-            style={styles.createButton}
-          >
-            <Text style={styles.createButtonText}>Buat Tugas</Text>
-          </LinearGradient>
+        <TouchableOpacity 
+          style={[styles.createButton, { backgroundColor: theme.primary }]}
+          onPress={handleCreateTask}
+        >
+          <Check size={20} color="white" />
+          <Text style={styles.createButtonText}>Buat Tugas</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -215,7 +209,6 @@ export default function AddTaskScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
   },
   header: {
     flexDirection: 'row',
@@ -228,29 +221,26 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#24252c',
     fontFamily: 'Inter-Bold',
   },
   content: {
     flex: 1,
     paddingHorizontal: 24,
   },
-  inputSection: {
+  section: {
     marginBottom: 24,
   },
-  inputLabel: {
+  sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#24252c',
     marginBottom: 12,
     fontFamily: 'Inter-SemiBold',
   },
   textInput: {
-    backgroundColor: 'white',
     borderRadius: 12,
     padding: 16,
     fontSize: 16,
-    color: '#24252c',
+    borderWidth: 1,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -265,19 +255,10 @@ const styles = StyleSheet.create({
     height: 100,
     paddingTop: 16,
     textAlignVertical: 'top',
-  },
-  optionsRow: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  optionItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'white',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 20,
-    gap: 8,
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 16,
+    borderWidth: 1,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -286,20 +267,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 2,
     elevation: 2,
+    fontFamily: 'Inter-Regular',
   },
-  selectedOptionItem: {
-    backgroundColor: '#5f33e1',
-  },
-  optionText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#24252c',
-    fontFamily: 'Inter-SemiBold',
-  },
-  selectedOptionText: {
-    color: 'white',
-  },
-  priorityGrid: {
+  priorityContainer: {
     flexDirection: 'row',
     gap: 12,
   },
@@ -307,11 +277,11 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'white',
     padding: 16,
     borderRadius: 12,
     justifyContent: 'center',
     gap: 8,
+    borderWidth: 1,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -321,26 +291,57 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 2,
   },
+  priorityIcon: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   priorityText: {
     fontSize: 14,
     fontWeight: '600',
     fontFamily: 'Inter-SemiBold',
   },
-  dateTimeSection: {
+  projectContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  projectItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 20,
+    gap: 8,
+    borderWidth: 1,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  projectText: {
+    fontSize: 14,
+    fontWeight: '600',
+    fontFamily: 'Inter-SemiBold',
+  },
+  dateTimeContainer: {
     flexDirection: 'row',
     gap: 12,
     marginBottom: 24,
   },
-  dateTimeItem: {
-    flex: 1,
-  },
-  dateTimeInput: {
+  dateTimeButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'white',
     padding: 16,
     borderRadius: 12,
     gap: 12,
+    borderWidth: 1,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -352,68 +353,6 @@ const styles = StyleSheet.create({
   },
   dateTimeText: {
     fontSize: 16,
-    color: '#24252c',
-    fontFamily: 'Inter-Regular',
-  },
-  previewSection: {
-    marginBottom: 24,
-  },
-  previewCard: {
-    backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  previewHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 12,
-  },
-  previewLeft: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    flex: 1,
-  },
-  previewPriority: {
-    width: 4,
-    height: 40,
-    borderRadius: 2,
-    marginRight: 12,
-  },
-  previewTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#24252c',
-    marginBottom: 4,
-    fontFamily: 'Inter-SemiBold',
-  },
-  previewProject: {
-    fontSize: 12,
-    color: '#666',
-    fontFamily: 'Inter-Regular',
-  },
-  previewStatus: {
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  previewStatusText: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: 'white',
-    fontFamily: 'Inter-SemiBold',
-  },
-  previewDate: {
-    fontSize: 12,
-    color: '#666',
     fontFamily: 'Inter-Regular',
   },
   buttonContainer: {
@@ -425,11 +364,31 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderRadius: 16,
     alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
   },
   createButtonText: {
     fontSize: 18,
     fontWeight: '700',
     color: 'white',
     fontFamily: 'Inter-Bold',
+  },
+  backButton: {
+    padding: 8,
+    borderRadius: 24,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  placeholder: {
+    width: 24,
+    height: 24,
   },
 });
